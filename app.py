@@ -24,24 +24,6 @@ st.write(
     need to save each month to stay on track."""
 )
 
-st.header("1. Current Snapshot")
-col_income, col_balance = st.columns(2)
-with col_income:
-    monthly_income = st.number_input("Average monthly income", min_value=0.0, value=5000.0, step=100.0)
-with col_balance:
-    current_savings = st.number_input("Current savings balance", min_value=0.0, value=2000.0, step=100.0)
-
-col_exp1, col_exp2, col_exp3 = st.columns(3)
-with col_exp1:
-    essential_expenses = st.number_input("Essential expenses", min_value=0.0, value=2500.0, step=50.0)
-with col_exp2:
-    discretionary_expenses = st.number_input("Discretionary expenses", min_value=0.0, value=800.0, step=50.0)
-with col_exp3:
-    other_expenses = st.number_input("Other recurring expenses", min_value=0.0, value=200.0, step=50.0)
-
-st.write(
-    "Use the breakdown table to list recurring expenses and the historical editor to refine your trends."
-)
 
 
 def _add_months(base: date, months: int) -> date:
@@ -99,9 +81,13 @@ def _collect_breakdown_entries(df: pd.DataFrame) -> List[dict]:
     return entries
 
 
-
-
-def _default_history() -> pd.DataFrame:
+def _default_history(
+    monthly_income: float,
+    essential_expenses: float,
+    discretionary_expenses: float,
+    other_expenses: float,
+    current_savings: float,
+) -> pd.DataFrame:
     today = date.today().replace(day=1)
     periods = pd.date_range(end=pd.Timestamp(today), periods=6, freq="MS")
     rows = []
@@ -121,7 +107,10 @@ def _default_history() -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
-st.header("2. Monthly Expense Breakdown")
+st.header("1. Monthly Expense Breakdown")
+st.write(
+    "Use the breakdown table to list recurring expenses and the historical editor to refine your trends."
+)
 breakdown_df = st.data_editor(
     _default_breakdown(),
     num_rows="dynamic",
@@ -142,15 +131,33 @@ breakdown_entries = _collect_breakdown_entries(breakdown_df)
 if breakdown_totals["total"] > 0:
     st.caption(f"Total detailed expenses captured: ${breakdown_totals['total']:,.0f}")
 
+st.header("2. Current Snapshot")
+col_income, col_balance = st.columns(2)
+with col_income:
+    monthly_income = st.number_input("Average monthly income", min_value=0.0, value=5000.0, step=100.0)
+with col_balance:
+    current_savings = st.number_input("Current savings balance", min_value=0.0, value=2000.0, step=100.0)
 
+col_exp1, col_exp2, col_exp3 = st.columns(3)
+with col_exp1:
+    essential_expenses = st.number_input("Essential expenses", min_value=0.0, value=2500.0, step=50.0)
+with col_exp2:
+    discretionary_expenses = st.number_input("Discretionary expenses", min_value=0.0, value=800.0, step=50.0)
+with col_exp3:
+    other_expenses = st.number_input("Other recurring expenses", min_value=0.0, value=200.0, step=50.0)
 
 history_df = st.data_editor(
-    _default_history(),
+    _default_history(
+        monthly_income,
+        essential_expenses,
+        discretionary_expenses,
+        other_expenses,
+        current_savings,
+    ),
     num_rows="dynamic",
     use_container_width=True,
     key="history_table",
 )
-
 st.header("3. Future Expenses & Goals")
 
 

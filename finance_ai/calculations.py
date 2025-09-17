@@ -33,6 +33,8 @@ class FutureExpense:
     priority: str = "medium"
 
 
+_PRIORITY_RANK = {"high": 0, "medium": 1, "low": 2}
+
 def summarize_cash_flow(records: Iterable[MonthlyRecord]) -> dict:
     """Aggregate cash flow information from historical records."""
 
@@ -86,7 +88,12 @@ def build_future_expense_plan(
     if start_date is None:
         start_date = date.today()
 
-    sorted_expenses = sorted(future_expenses, key=lambda exp: exp.due_date)
+    def _sort_key(expense: FutureExpense) -> tuple[int, date]:
+        priority_value = str(expense.priority or "").lower()
+        priority_rank = _PRIORITY_RANK.get(priority_value, 3)
+        return (priority_rank, expense.due_date)
+
+    sorted_expenses = sorted(future_expenses, key=_sort_key)
     plan: List[dict] = []
     balance_remaining = max(current_balance, 0.0)
 
